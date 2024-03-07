@@ -1,5 +1,4 @@
 using System.Windows.Forms;
-using Classes;
 
 namespace Lab15
 {
