@@ -126,7 +126,7 @@ namespace Lab15
                 Invoke(() =>
                 {
                     MessageBox.Show($"{aliveTeams[0].Name} wins!");
-                    //Restart();
+                    Restart();
                 });
             }
         }
@@ -183,6 +183,9 @@ namespace Lab15
 
         private void StartButton_Click(object sender, EventArgs e)
         {
+            if(teamsDict.Count < 2) {
+                MessageBox.Show("Зачем, это же бесполезно?");
+            }
             //if (!gameRunning)
             gameRunning = true;
             StartGame();
