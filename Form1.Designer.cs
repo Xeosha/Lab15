@@ -51,6 +51,7 @@
             ResultListBox = new ListBox();
             ResultLabel = new Label();
             ResultGroupBox = new GroupBox();
+            ClearListBoxesButton = new Button();
             ResultLabel2 = new Label();
             ResultListBox2 = new ListBox();
             groupBoxCreateTeam.SuspendLayout();
@@ -241,7 +242,7 @@
             // 
             // StartButton
             // 
-            StartButton.Location = new Point(183, 22);
+            StartButton.Location = new Point(82, 22);
             StartButton.Name = "StartButton";
             StartButton.Size = new Size(183, 55);
             StartButton.TabIndex = 4;
@@ -269,6 +270,7 @@
             // 
             // ResultGroupBox
             // 
+            ResultGroupBox.Controls.Add(ClearListBoxesButton);
             ResultGroupBox.Controls.Add(ResultLabel2);
             ResultGroupBox.Controls.Add(ResultListBox2);
             ResultGroupBox.Controls.Add(ResultListBox);
@@ -280,6 +282,16 @@
             ResultGroupBox.TabIndex = 7;
             ResultGroupBox.TabStop = false;
             ResultGroupBox.Text = "Визуал";
+            // 
+            // ClearListBoxesButton
+            // 
+            ClearListBoxesButton.Location = new Point(304, 22);
+            ClearListBoxesButton.Name = "ClearListBoxesButton";
+            ClearListBoxesButton.Size = new Size(183, 55);
+            ClearListBoxesButton.TabIndex = 9;
+            ClearListBoxesButton.Text = "Очистить поля ниже";
+            ClearListBoxesButton.UseVisualStyleBackColor = true;
+            ClearListBoxesButton.Click += ClearListBoxesButton_Click;
             // 
             // ResultLabel2
             // 
@@ -351,5 +363,6 @@
         private GroupBox ResultGroupBox;
         private Label ResultLabel2;
         private ListBox ResultListBox2;
+        private Button ClearListBoxesButton;
     }
 }

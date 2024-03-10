@@ -6,7 +6,7 @@ namespace Lab15
     {
         private readonly Dictionary<string, Team> teamsDict;
         private readonly Dictionary<string, Thread> threadsDict;
-        private bool flagWinner;
+        private bool gameRunning;
 
         public Form1()
         {
@@ -14,54 +14,66 @@ namespace Lab15
 
             teamsDict = new();
             threadsDict = new();
-            flagWinner = false;
+            gameRunning = false;
+
         }
+
 
         private void Form1_Load(object sender, EventArgs e)
         {
-            PriorityThreadComboBox.Items.Add(ThreadPriority.Lowest);
-            PriorityThreadComboBox.Items.Add(ThreadPriority.BelowNormal);
-            PriorityThreadComboBox.Items.Add(ThreadPriority.Normal);
-            PriorityThreadComboBox.Items.Add(ThreadPriority.AboveNormal);
-            PriorityThreadComboBox.Items.Add(ThreadPriority.Highest);
+            PriorityThreadComboBox.Items.AddRange(Enum.GetValues(typeof(ThreadPriority)).Cast<object>().ToArray());
         }
 
 
         // функция сражения, которую и будем запускать в разных потоках.
         private void Battle(Team teamAttack, Team teamDefend)
         {
-            while (teamAttack.NumSoldiers > 0 && teamDefend.NumSoldiers > 0 && !flagWinner)
+            while (teamAttack.NumSoldiers > 0 && teamDefend.NumSoldiers > 0)
             {
                 lock (this)
                 {
-                    teamAttack.IncreaseSoldiers();
-                    var damage = teamDefend.Attack(teamDefend);
+                    if (!gameRunning)
+                        break;
 
-                    Invoke(() => { UpdateUIResult(teamAttack, teamDefend, damage); UpdateUIResult2(); });
+                    teamDefend.IncreaseSoldiers();
+                    teamAttack.Attack(teamDefend);
                 }
 
                 Thread.Sleep(1000);
+
             }
-
-            flagWinner = true;
-
-
-            MessageBox.Show("Выиграла команда: " + teamAttack.Name + " !!!");
         }
 
-        // обновляет через Invoke() в главном потоке UI второго лист бокса
+        private void Restart()
+        {
+            teamsDict.Clear();
+            threadsDict.Clear();
+            ClearComboBoxes();
+        }
+
+        private void ClearComboBoxes()
+        {
+            TeamAttackComboBox.Items.Clear();
+            TeamDefendComboxBox.Items.Clear();
+            ThreadComboBox.Items.Clear();
+        }
+
+        private void ClearListBoxes()
+        {
+            ResultListBox.Items.Clear();
+            ResultListBox2.Items.Clear();
+        }
+
         private void UpdateUIResult2()
         {
             ResultListBox2.Items.Clear();
             foreach (var value in teamsDict.Values)
-            {
                 ResultListBox2.Items.Add("Team: " + value.Name + " - soldiers: " + value.NumSoldiers);
-            }
         }
 
-        private void UpdateUIResult(Team attackingTeam, Team defendingTeam, int damage)
+        private void UpdateUIResult1(string row)
         {
-            ResultListBox.Items.Add(attackingTeam.Name + " атакует " + defendingTeam.Name + " и наносит: " + damage + " урона");
+            ResultListBox.Items.Add(row);
         }
 
 
@@ -87,6 +99,13 @@ namespace Lab15
                     // Добавляем в панели ниже
                     TeamAttackComboBox.Items.Add(nameTeam);
                     TeamDefendComboxBox.Items.Add(nameTeam);
+
+                    team.TeamUpdated += Team_OnTeamUpdated;
+
+                    MessageBox.Show("Успешное создание команды под названием: " + nameTeam, "", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                    NameTeamText.Text = null;
+                    CountSoldiersText.Text = null;
                 }
             }
             else
@@ -95,14 +114,31 @@ namespace Lab15
             }
         }
 
+        private void Team_OnTeamUpdated(object sender, TeamHandlerEventArgs e)
+        {
+            Invoke(() => UpdateUIResult2());
+            Invoke(() => UpdateUIResult1(e.ActionDescription));
+
+            var aliveTeams = teamsDict.Values.ToList().FindAll(team => team.NumSoldiers > 0);
+            if (aliveTeams.Count == 1)
+            {
+                gameRunning = false;
+                Invoke(() =>
+                {
+                    MessageBox.Show($"{aliveTeams[0].Name} wins!");
+                    //Restart();
+                });
+            }
+        }
+
         private void CreateThreadButton_Click(object sender, EventArgs e)
         {
+            // если не выбрано, выходим.
             if (TeamAttackComboBox.SelectedIndex == -1 || TeamDefendComboxBox.SelectedIndex == -1)
                 return;
 
             var teamAttacker = teamsDict[TeamAttackComboBox.Text];
             var teamDefender = teamsDict[TeamDefendComboxBox.Text];
-
 
             // заполняем атрибуты класса потока
             var battleThread = new Thread(() => Battle(teamAttacker, teamDefender));
@@ -114,10 +150,17 @@ namespace Lab15
             }
             else
             {
+                // добавляем в словарь потоков
                 threadsDict.Add(battleThread.Name, battleThread);
-                
+
                 // Добавляем в панель ниже
                 ThreadComboBox.Items.Add(battleThread.Name);
+
+                MessageBox.Show("Поток создан под названием: " + battleThread.Name, "", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // обнуляем выбранные пользователем поля
+                TeamAttackComboBox.SelectedIndex = -1;
+                TeamDefendComboxBox.SelectedIndex = -1;
             }
 
         }
@@ -133,10 +176,20 @@ namespace Lab15
             {
                 thread.Priority = threadPriority;
 
+                ThreadComboBox.SelectedIndex = -1;
+                PriorityThreadComboBox.SelectedIndex = -1;
             }
         }
 
         private void StartButton_Click(object sender, EventArgs e)
+        {
+            //if (!gameRunning)
+            gameRunning = true;
+            StartGame();
+
+        }
+
+        private void StartGame()
         {
             foreach (var thread in threadsDict.Values)
             {
@@ -145,10 +198,13 @@ namespace Lab15
                     thread.IsBackground = true; // потоки в фоновом режиме - завершается основной. завершается и он.
                     thread.Start();
                 }
-
             }
         }
 
+        private void ClearListBoxesButton_Click(object sender, EventArgs e)
+        {
+            ClearListBoxes();
+        }
     }
 
 
