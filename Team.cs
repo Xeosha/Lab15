@@ -1,19 +1,29 @@
-﻿namespace Lab15
+﻿using System.Xml.Linq;
+
+namespace Lab15
 {
     public class TeamHandlerEventArgs
     {
         public Team? Attacker { get; set; }
         public Team? Defender { get; set; }
-        public string ActionDescription { get; set; }
+        public int NumSoldiers { get; set; }
 
-        public TeamHandlerEventArgs(Team? attacker, Team? defender, string actionDescription)
+        public TeamHandlerEventArgs(Team? attacker, Team? defender, int numSoldiers)
         {
             Attacker = attacker;
             Defender = defender;
-            ActionDescription = actionDescription;
+            NumSoldiers = numSoldiers;
         }
 
-        public override string ToString() => ActionDescription;
+        public override string ToString()
+        {
+            if (Attacker == null)
+                return $"Войско команды: {Defender?.Name} возросло на {NumSoldiers}";
+            return $"Команда {Attacker?.Name} атакует {Defender?.Name} и наносит {NumSoldiers} урона";
+
+
+        }
+           
 
     }
 
@@ -50,7 +60,7 @@
 
             NumSoldiers += soldiersIncreased;
 
-            OnTeamUpdated(this, new TeamHandlerEventArgs(null, this, $"Войско команды: {Name} возросло на {soldiersIncreased}"));
+            OnTeamUpdated(this, new TeamHandlerEventArgs(null, this, soldiersIncreased));
         }
 
         public int Attack(Team otherTeam)
@@ -58,7 +68,7 @@
             int soldiersKilled = new Random().Next(1, 80);
             otherTeam.NumSoldiers -= soldiersKilled;
 
-            OnTeamUpdated(this, new TeamHandlerEventArgs(null, this, $"Команда {this.Name} атакует {otherTeam.Name} и наносит {soldiersKilled} урона"));
+            OnTeamUpdated(this, new TeamHandlerEventArgs(this, otherTeam, soldiersKilled));
 
             return soldiersKilled;
         }

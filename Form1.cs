@@ -114,10 +114,10 @@ namespace Lab15
             }
         }
 
-        private void Team_OnTeamUpdated(object sender, TeamHandlerEventArgs e)
+        private void Team_OnTeamUpdated(object? sender, TeamHandlerEventArgs e)
         {
             Invoke(() => UpdateUIResult2());
-            Invoke(() => UpdateUIResult1(e.ActionDescription));
+            Invoke(() => UpdateUIResult1(e.ToString()));
 
             var aliveTeams = teamsDict.Values.ToList().FindAll(team => team.NumSoldiers > 0);
             if (aliveTeams.Count == 1)
